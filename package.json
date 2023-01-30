@@ -1,0 +1,17 @@
+{
+  "name": "chatbot-telegram",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ChatGPT chatbot for Telegram",
+  "main": "index.js",
+  "repository": "https://github.com/rabilrbl/ChatBot-Telegram",
+  "author": "Mohammed Rabil",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "openai": "^3.1.0",
+    "telegraf": "^4.11.2"
+  }
+}
