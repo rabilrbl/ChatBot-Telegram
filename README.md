@@ -12,7 +12,7 @@ This is a simple chatbot for Telegram that uses GPT-3 Model from OpenAI. It is b
 flyctl deploy
 ```
 
-## Requiremed environment variables
+## Required environment variables
 
 - `BOT_TOKEN` - Telegram Bot Token.
 - `OPENAI_API_KEY` - OpenAI API Key.
