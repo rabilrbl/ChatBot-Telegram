@@ -72,6 +72,12 @@ const sendMarkdownMessage = (response, ctx) => {
   });
 };
 
+const loadingWrapper = async (ctx, func) => {
+  msg = ctx.reply("Thinking...");
+  await func();
+  ctx.deleteMessage(msg.message_id);
+};
+
 // Restrict this bot to only user named "username"
 bot.use((ctx, next) => {
   if (AUTHORIZED_USERS.includes(ctx.from.username)) {
@@ -81,22 +87,28 @@ bot.use((ctx, next) => {
 });
 
 bot.command("image", async (ctx) => {
-  const response = await genImage(ctx.message.text);
-  const images = response.data.data;
-  images.forEach((image) => {
-    ctx.replyWithPhoto(image.url);
+  loadingWrapper(ctx, async () => {
+    const response = await genImage(ctx.message.text);
+    const images = response.data.data;
+    images.forEach((image) => {
+      ctx.replyWithPhoto(image.url);
+    });
   });
 });
 
 bot.command("code", async (ctx) => {
   if (ctx.message.reply_to_message) {
-    const response = await genCode(
-      ctx.message.reply_to_message.text + "\n" + ctx.message.text
-    );
-    sendMarkdownMessage(response, ctx);
+    loadingWrapper(ctx, async () => {
+      const response = await genCode(
+        ctx.message.reply_to_message.text + "\n" + ctx.message.text
+      );
+      sendMarkdownMessage(response, ctx);
+    });
   } else {
-    const response = await genCode(ctx.message.text);
-    sendMarkdownMessage(response, ctx);
+    loadingWrapper(ctx, async () => {
+      const response = await genCode(ctx.message.text);
+      sendMarkdownMessage(response, ctx);
+    });
   }
 });
 
@@ -104,13 +116,17 @@ bot.command("code", async (ctx) => {
 bot.on("message", async (ctx) => {
   // If message is a reply, use the replied message as prompt along with the current message
   if (ctx.message.reply_to_message) {
-    const response = await genText(
-      ctx.message.reply_to_message.text + "\n" + ctx.message.text
-    );
-    sendTextMessage(response, ctx);
+    loadingWrapper(ctx, async () => {
+      const response = await genText(
+        ctx.message.reply_to_message.text + "\n" + ctx.message.text
+      );
+      sendTextMessage(response, ctx);
+    });
   } else {
-    const response = await genText(ctx.message.text);
-    sendTextMessage(response, ctx);
+    loadingWrapper(ctx, async () => {
+      const response = await genText(ctx.message.text);
+      sendTextMessage(response, ctx);
+    });
   }
 });
 
