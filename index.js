@@ -73,7 +73,7 @@ const sendMarkdownMessage = (response, ctx) => {
 };
 
 const loadingWrapper = async (ctx, func) => {
-  msg = ctx.reply("Thinking...");
+  const msg = await ctx.reply("Thinking...");
   await func();
   ctx.deleteMessage(msg.message_id);
 };
