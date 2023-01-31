@@ -1,11 +1,16 @@
 import { Telegraf } from "telegraf";
 
-import { Configuration, OpenAIApi } from "openai";
+import { bingSearch } from "./search.js";
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+import {
+  genCode,
+  genText,
+  genImage,
+  sendTextMessage,
+  sendMarkdownMessage,
+  loadingWrapper,
+} from "./process.js";
+
 const AUTHORIZED_USERS = process.env.AUTHORIZED_USERS.split(",");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -26,69 +31,17 @@ bot.help((ctx) =>
   )
 );
 
-const genCode = async (prompt) => {
-  return await openai.createCompletion({
-    model: "code-davinci-002",
-    prompt: prompt,
-    temperature: 0.7,
-    max_tokens: 2000,
-  });
-};
-
-const genText = async (prompt) => {
-  return await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: prompt,
-    temperature: 0.7,
-    max_tokens: 500,
-  });
-};
-
-const genImage = async (prompt) => {
-  return await openai.createImage({
-    prompt: prompt,
-    n: 2,
-  });
-};
-
-const sendTextMessage = (response, ctx) => {
-  let message = "";
-  response.data.choices.forEach((choice) => {
-    message += choice.text;
-  });
-  ctx.reply(message, {
-    reply_to_message_id: ctx.message.message_id,
-  });
-};
-
-const sendMarkdownMessage = (response, ctx) => {
-  let message = "";
-  response.data.choices.forEach((choice) => {
-    message += choice.text;
-  });
-  ctx.replyWithMarkdown(message, {
-    reply_to_message_id: ctx.message.message_id,
-    parse_mode: "Markdown",
-  });
-};
-
-const loadingWrapper = async (ctx, func) => {
-  const msg = await ctx.reply("Thinking...");
-  await func();
-  ctx.deleteMessage(msg.message_id);
-};
-
 // Restrict this bot to only user named "username"
 bot.use((ctx, next) => {
   if (AUTHORIZED_USERS.includes(ctx.from.username)) {
     return next();
   }
-  ctx.reply("You are not allowed to use this bot");
+  ctx.reply("You are not allowed to use this bot.");
 });
 
 bot.command("image", async (ctx) => {
   loadingWrapper(ctx, async () => {
-    const response = await genImage(ctx.message.text);
+    const response = await genImage(ctx.message.text.slice(7));
     const images = response.data.data;
     images.forEach((image) => {
       ctx.replyWithPhoto(image.url);
@@ -100,7 +53,7 @@ bot.command("code", async (ctx) => {
   if (ctx.message.reply_to_message) {
     loadingWrapper(ctx, async () => {
       const response = await genCode(
-        ctx.message.reply_to_message.text + "\n" + ctx.message.text
+        ctx.message.reply_to_message.text + "\n" + ctx.message.text.slice(6)
       );
       sendMarkdownMessage(response, ctx);
     });
@@ -110,6 +63,29 @@ bot.command("code", async (ctx) => {
       sendMarkdownMessage(response, ctx);
     });
   }
+});
+
+bot.command("s", async (ctx) => {
+  loadingWrapper(ctx, async () => {
+    const query = ctx.message.text.slice(3);
+    let response;
+    if (query.slice(0, 1) === "p") {
+      response = await bingSearch(query.slice(2), query.slice(1, 2));
+      ctx.reply(
+        "Searching for " + query.slice(3) + " on page " + query.slice(1, 2)
+      );
+    } else {
+      response = await bingSearch(query);
+    }
+    let message = "";
+    response.forEach((result) => {
+      message += `<a href="${result.url}">${result.title}</a>\n${result.description}\n\n`;
+    });
+    message &&
+      ctx.replyWithHTML(message, {
+        reply_to_message_id: ctx.message.message_id,
+      });
+  });
 });
 
 // Process all messages and reply with openai response

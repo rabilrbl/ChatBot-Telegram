@@ -11,6 +11,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "dom-parser": "^0.1.6",
     "openai": "^3.1.0",
     "telegraf": "^4.11.2"
   }
