@@ -1,12 +1,10 @@
 FROM debian:bullseye as builder
 
-ARG NODE_VERSION=19.0.0
-
 RUN apt-get update; apt install -y curl
 RUN curl https://get.volta.sh | bash
 ENV VOLTA_HOME /root/.volta
 ENV PATH /root/.volta/bin:$PATH
-RUN volta install node@${NODE_VERSION}
+RUN volta install node
 
 #######################################################################
 
