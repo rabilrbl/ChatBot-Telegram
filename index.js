@@ -70,7 +70,7 @@ bot.command("code", async (ctx) => {
 bot.command("s", async (ctx) => {
   const query = ctx.message.text.slice(3);
   const response = await googleSearchResults(query);
-  let message = `<b>Search results for <code>${query}</code></b>\n\n`;
+  let message = `Search results for <code>${query}</code>\n\n`;
   response.forEach((result) => {
     message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
   });
