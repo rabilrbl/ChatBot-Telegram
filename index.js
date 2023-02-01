@@ -1,7 +1,6 @@
 import { Telegraf } from "telegraf";
 
 import {
-  bingSearch,
   googleCurrency,
   googleDictionary,
   googleImages,
@@ -81,7 +80,7 @@ bot.command("code", async (ctx) => {
         "\n" +
         ctx.message.text.slice(6))
     : (prompt = ctx.message.text.slice(6));
-  response = await genCode(ctx.message.text);
+  response = await genCode(prompt);
   sendMarkdownMessage(response, ctx);
 });
 
