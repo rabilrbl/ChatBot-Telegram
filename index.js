@@ -34,88 +34,75 @@ bot.help((ctx) =>
 // Restrict this bot to only user named "username"
 bot.use((ctx, next) => {
   if (AUTHORIZED_USERS.includes(ctx.from.username)) {
-    return next();
+    return loadingWrapper(ctx, async () => {
+      await next();
+    });
   }
   ctx.reply("You are not allowed to use this bot.");
 });
 
 bot.command("image", async (ctx) => {
-  loadingWrapper(ctx, async () => {
-    const response = await genImage(ctx.message.text.slice(7));
-    const images = response.data.data;
-    images.forEach((image) => {
-      ctx.replyWithPhoto(image.url);
-    });
+  const response = await genImage(ctx.message.text.slice(7));
+  const images = response.data.data;
+  images.forEach((image) => {
+    ctx.replyWithPhoto(image.url);
   });
 });
 
 bot.command("code", async (ctx) => {
-  if (ctx.message.reply_to_message) {
-    loadingWrapper(ctx, async () => {
-      const response = await genCode(
-        ctx.message.reply_to_message.text + "\n" + ctx.message.text.slice(6)
-      );
-      sendMarkdownMessage(response, ctx);
-    });
-  } else {
-    loadingWrapper(ctx, async () => {
-      const response = await genCode(ctx.message.text);
-      sendMarkdownMessage(response, ctx);
-    });
-  }
+  let prompt;
+  ctx.message.reply_to_message
+    ? (prompt =
+        ctx.message.reply_to_message.text.slice(6) +
+        "\n" +
+        ctx.message.text.slice(6))
+    : (prompt = ctx.message.text.slice(6));
+  response = await genCode(ctx.message.text);
+  sendMarkdownMessage(response, ctx);
 });
 
 bot.command("s", async (ctx) => {
-  loadingWrapper(ctx, async () => {
-    const query = ctx.message.text.slice(3);
-    const response = await bingSearch(query);
-    let message = `<b>Search results for <code>${query}</code></b>\n`
-    response.forEach((result) => {
-      message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
-    });
-    message &&
-      ctx.replyWithHTML(message, {
-        reply_to_message_id: ctx.message.message_id,
-      });
+  const query = ctx.message.text.slice(3);
+  const response = await bingSearch(query);
+  let message = `<b>Search results for <code>${query}</code></b>\n`;
+  response.forEach((result) => {
+    message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
   });
+  message &&
+    ctx.replyWithHTML(message, {
+      reply_to_message_id: ctx.message.message_id,
+    });
 });
 
 // Process all messages and reply with openai response
 bot.on("message", async (ctx) => {
+  let prompt;
   // If message is a reply, use the replied message as prompt along with the current message
-  if (ctx.message.reply_to_message) {
-    loadingWrapper(ctx, async () => {
-      const response = await genText(
-        ctx.message.reply_to_message.text + "\n" + ctx.message.text
-      );
-      sendTextMessage(response, ctx);
-    });
-  } else {
-    loadingWrapper(ctx, async () => {
-      const response = await genText(ctx.message.text);
-      sendTextMessage(response, ctx);
-    });
-  }
+  ctx.message.reply_to_message
+    ? (prompt = ctx.message.reply_to_message.text + "\n" + ctx.message.text)
+    : (prompt = ctx.message.text);
+  const response = await genText(prompt);
+  sendTextMessage(response, ctx);
 });
 
 bot.on("edited_message", async (ctx) => {
-  loadingWrapper(ctx, async () => {
-    const message = ctx.update.edited_message;
-    //  If message is not a command prefixed with "/"
-    if (message.text[0] !== "/") {
-      if (message.reply_to_message) {
-        const response = await genText(
-          message.reply_to_message.text + "\n" + message.text
-        );
-        sendTextMessage(response, ctx);
-      } else {
-        const response = await genText(message.text);
-        sendTextMessage(response, ctx);
+  const message = ctx.update.edited_message;
+  //  If message is not a command prefixed with "/"
+  if (message.text[0] !== "/") {
+    let prompt;
+    message.reply_to_message
+      ? (prompt = message.reply_to_message.text + "\n" + message.text)
+      : (prompt = message.text);
+    const response = await genText(prompt);
+    sendTextMessage(response, ctx);
+  } else {
+    ctx.reply(
+      `Commands are not supported in edited messages. You can paste this in a new message.\n<code>${message.text}</code>`,
+      {
+        parse_mode: "HTML",
       }
-    } else {
-      ctx.reply("Commands are not supported in edited messages.");
-    }
-  });
+    );
+  }
 });
 
 bot.launch();
