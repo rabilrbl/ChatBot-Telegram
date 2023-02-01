@@ -98,6 +98,26 @@ bot.on("message", async (ctx) => {
   }
 });
 
+bot.on("edited_message", async (ctx) => {
+  loadingWrapper(ctx, async () => {
+    const message = ctx.update.edited_message;
+    //  If message is not a command prefixed with "/"
+    if (message.text[0] !== "/") {
+      if (message.reply_to_message) {
+        const response = await genText(
+          message.reply_to_message.text + "\n" + message.text
+        );
+        sendTextMessage(response, ctx);
+      } else {
+        const response = await genText(message.text);
+        sendTextMessage(response, ctx);
+      }
+    } else {
+      ctx.reply("Commands are not supported in edited messages.");
+    }
+  });
+});
+
 bot.launch();
 
 // Enable graceful stop

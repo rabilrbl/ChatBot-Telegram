@@ -35,9 +35,20 @@ export const sendTextMessage = (response, ctx) => {
   response.data.choices.forEach((choice) => {
     message += choice.text;
   });
-  ctx.reply(message, {
-    reply_to_message_id: ctx.message.message_id,
-  });
+  try {
+    ctx.reply(message, {
+      reply_to_message_id: ctx.message.message_id,
+    });
+  } catch (e) {
+    // If error is of undefined type, it means that the message is an edited message
+    if (e.name === "TypeError") {
+      ctx.reply(message, {
+        reply_to_message_id: ctx.update.edited_message.message_id,
+      });
+    } else {
+      throw e;
+    }
+  }
 };
 
 export const sendMarkdownMessage = (response, ctx) => {
