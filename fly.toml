@@ -3,7 +3,7 @@
 app = "chatbot-telegram"
 kill_signal = "SIGINT"
 kill_timeout = 5
-processes = []
+processes = ["node"]
 
 [env]
 
@@ -11,8 +11,11 @@ processes = []
   auto_rollback = false
 
 [[services]]
-  processes = ["app"]
+  processes = ["node"] 
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20
     type = "connections"
+
+[deploy]
+  release_command = "pkill -9 node"
