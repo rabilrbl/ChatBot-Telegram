@@ -9,7 +9,7 @@ import {
   sendTextMessage,
   sendMarkdownMessage,
   loadingWrapper,
-} from "./process.js";
+} from "./lib.js";
 
 const AUTHORIZED_USERS = process.env.AUTHORIZED_USERS.split(",");
 
