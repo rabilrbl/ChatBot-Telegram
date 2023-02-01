@@ -22,16 +22,21 @@ export const googleImages = async (query) => {
 
 export const googleSearchResults = async (query, page = 0) => {
   const response = await googleSearch(query, page);
-  const links = response.results
-    .concat(response.knowledge_panel)
-    .reverse()
-    .map((result) => {
-      return {
-        title: result.title,
-        url: result.url,
-        description: result.description,
-      };
+  let links = [];
+  response.knowledge_panel &&
+    response.knowledge_panel.title &&
+    links.push({
+      title: response.knowledge_panel.title,
+      url: response.knowledge_panel.url,
+      description: response.knowledge_panel.description,
     });
+  response.results.forEach((result) => {
+    links.push({
+      title: result.title,
+      url: result.url,
+      description: result.description,
+    });
+  });
   return links;
 };
 
