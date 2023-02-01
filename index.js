@@ -68,18 +68,10 @@ bot.command("code", async (ctx) => {
 bot.command("s", async (ctx) => {
   loadingWrapper(ctx, async () => {
     const query = ctx.message.text.slice(3);
-    let response;
-    if (query.slice(0, 1) === "p") {
-      response = await bingSearch(query.slice(2), query.slice(1, 2));
-      ctx.reply(
-        "Searching for " + query.slice(3) + " on page " + query.slice(1, 2)
-      );
-    } else {
-      response = await bingSearch(query);
-    }
+    const response = await bingSearch(query);
     let message = "";
     response.forEach((result) => {
-      message += `<a href="${result.url}">${result.title}</a>\n${result.description}\n\n`;
+      message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
     });
     message &&
       ctx.replyWithHTML(message, {
@@ -107,3 +99,7 @@ bot.on("message", async (ctx) => {
 });
 
 bot.launch();
+
+// Enable graceful stop
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
