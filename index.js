@@ -1,6 +1,12 @@
 import { Telegraf } from "telegraf";
 
-import { bingSearch } from "./search.js";
+import {
+  bingSearch,
+  googleDictionary,
+  googleImages,
+  googleSearchResults,
+  googleTranslate,
+} from "./search.js";
 
 import {
   genCode,
@@ -63,7 +69,7 @@ bot.command("code", async (ctx) => {
 
 bot.command("s", async (ctx) => {
   const query = ctx.message.text.slice(3);
-  const response = await bingSearch(query);
+  const response = await googleSearchResults(query);
   let message = `<b>Search results for <code>${query}</code></b>\n\n`;
   response.forEach((result) => {
     message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
@@ -90,6 +96,74 @@ bot.command("s", async (ctx) => {
         ],
       },
     });
+});
+
+bot.command("d", async (ctx) => {
+  const query = ctx.message.text.slice(3);
+  const response = await googleDictionary(query);
+  let message = `Word: <b>${response.word}</b> | <code>${response.phonetic}</code>\n\n`;
+  message += `<u>Definitions:</u> \n\n`;
+  response.definitions.forEach((definition) => {
+    message += `<b><i>${definition}</i></b>\n\n`;
+  });
+  if (response.examples.length > 0) {
+    message += `\n<u>Examples:</u> \n\n`;
+    response.examples.forEach((example) => {
+      message += `<i>${response.examples}</i>\n\n`;
+    });
+  }
+  message &&
+    ctx.replyWithHTML(message, {
+      reply_to_message_id: ctx.message.message_id,
+    });
+});
+
+bot.command("t", async (ctx) => {
+  let query = ctx.message.text.slice(3);
+  query = query.split(" ");
+  // First word will be the language to translate to
+  const language = query.shift();
+  // Join the rest of the words to form the query
+  query = query.join(" ");
+  const response = await googleTranslate(query, language);
+  let message = `Translated from <b>${response.source_language}</b> to <b>${response.target_language}</b>\n\n`;
+  message += `<u>Actual:</u> ${response.source_text}\n\n<u>Translated:</u> <b><code>${response.target_text}</code></b>`;
+  message &&
+    ctx.replyWithHTML(message, {
+      reply_to_message_id: ctx.message.message_id,
+    });
+});
+
+bot.command("i", async (ctx) => {
+  const query = ctx.message.text.slice(3);
+  const response = await googleImages(query);
+  ctx.reply(`<b>Image search results for <code>${query}</code></b>\n\n`, {
+    reply_to_message_id: ctx.message.message_id,
+    parse_mode: "HTML",
+  });
+  response.forEach((result) => {
+    ctx.replyWithPhoto(result.url, {
+      caption: result.origin.title,
+      caption_entities: [
+        {
+          type: "text_link",
+          url: result.origin.website.url,
+          offset: 0,
+          length: result.origin.title.length,
+        },
+      ],
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Delete",
+              callback_data: "delete",
+            },
+          ],
+        ],
+      },
+    });
+  });
 });
 
 // Process all messages and reply with openai response
@@ -128,6 +202,11 @@ bot.action("regenerate", async (ctx) => {
   const prompt = message.reply_to_message.text;
   const response = await genText(prompt);
   sendTextMessage(response, ctx, true);
+});
+
+bot.action("delete", async (ctx) => {
+  const message = ctx.update.callback_query.message;
+  ctx.telegram.deleteMessage(message.chat.id, message.message_id);
 });
 
 bot.launch();

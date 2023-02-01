@@ -1,6 +1,56 @@
 import DOMParser from "dom-parser";
+import google from "googlethis";
 
-export async function bingSearch(query, page=1) {
+export const googleSearch = async (query, page = 0) => {
+  const options = {
+    page,
+    safe: false, // Safe Search
+    parse_ads: false, // If set to true sponsored results will be parsed
+    additional_params: {
+      // add additional parameters here, see https://moz.com/blog/the-ultimate-guide-to-the-google-search-parameters and https://www.seoquake.com/blog/google-search-param/
+      hl: "en",
+    },
+  };
+  const response = await google.search(query, options);
+  return response;
+};
+
+export const googleImages = async (query) => {
+  const images = await google.image(query, { safe: false });
+  return images.slice(0, 5);
+};
+
+export const googleSearchResults = async (query, page = 0) => {
+  const response = await googleSearch(query, page);
+  const links = response.results
+    .concat(response.knowledge_panel)
+    .reverse()
+    .map((result) => {
+      return {
+        title: result.title,
+        url: result.url,
+        description: result.description,
+      };
+    });
+  return links;
+};
+
+export const googleTranslate = async (word, lang) => {
+  const response = await googleSearch(`translate ${word} to ${lang}`);
+  return response.translation;
+};
+
+export const googleDictionary = async (word) => {
+  const response = await googleSearch(`define ${word}`);
+  return response.dictionary;
+};
+
+export const googleWeather = async (place) => {
+  const response = await googleSearch(`Weather in ${place}`);
+  return response.weather;
+};
+
+export async function bingSearch(query, page = 1) {
   const response = await fetch(
     `https://www.bing.com/search?q=${query}&page=${page}&count=10`
   );
@@ -14,10 +64,7 @@ export async function bingSearch(query, page=1) {
     const link = result.getElementsByTagName("a")[0];
     let description = "";
     result.getElementsByTagName("p").forEach((p) => {
-        const text = p.textContent;
-        if (text.slice(0, 2) === "Web") {
-            text = text.slice(2);
-        }
+      const text = p.textContent;
       description += `${text}\n`;
     });
     result.getElementsByTagName("li").forEach((li) => {
