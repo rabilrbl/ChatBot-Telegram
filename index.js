@@ -69,7 +69,7 @@ bot.command("s", async (ctx) => {
   loadingWrapper(ctx, async () => {
     const query = ctx.message.text.slice(3);
     const response = await bingSearch(query);
-    let message = "";
+    let message = `<b>Search results for <code>${query}</code></b>\n`
     response.forEach((result) => {
       message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
     });
