@@ -2,6 +2,7 @@ import { Telegraf } from "telegraf";
 
 import {
   bingSearch,
+  googleCurrency,
   googleDictionary,
   googleImages,
   googleSearchResults,
@@ -166,6 +167,20 @@ bot.command("i", async (ctx) => {
     });
   });
 });
+
+// Currency converter: /convert 1 USD to INR
+bot.hears(/\/convert \d+ \w+ to \w+/i, async (ctx) => {
+  const query = ctx.message.text.slice(8);
+  const response = await googleCurrency(query);
+  let message = `<b>Conversion results for <code>${query}</code></b>\n\n`;
+  message += `<u>${response.input.name}</u>: ${response.input.value}\n\n`;
+  message += `<u>${response.output.name}</u>: ${response.output.value}`;
+  message &&
+    ctx.replyWithHTML(message, {
+      reply_to_message_id: ctx.message.message_id,
+    });
+});
+
 
 // Process all messages and reply with openai response
 bot.on("message", async (ctx) => {

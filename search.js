@@ -54,6 +54,11 @@ export const googleWeather = async (place) => {
   return response.weather;
 };
 
+export const googleCurrency = async (query) => {
+  const response = await googleSearch(query);
+  return response.unit_converter;
+}
+
 export async function bingSearch(query, page = 1) {
   const response = await fetch(
     `https://www.bing.com/search?q=${query}&page=${page}&count=10`
