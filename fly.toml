@@ -3,7 +3,6 @@
 app = "chatbot-telegram"
 kill_signal = "SIGINT"
 kill_timeout = 5
-processes = ["node"]
 
 [env]
 
@@ -11,7 +10,6 @@ processes = ["node"]
   auto_rollback = false
 
 [[services]]
-  processes = ["node"] 
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20
