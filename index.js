@@ -70,12 +70,13 @@ bot.command("code", async (ctx) => {
 bot.command("s", async (ctx) => {
   const query = ctx.message.text.slice(3);
   const response = await googleSearchResults(query);
-  let message = `Search results for <code>${query}</code>\n\n`;
+  let message = `Showing search results for \`${query}\`\n\n`;
   response.forEach((result) => {
-    message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
+    message += `[${result.title}](${result.url})\n_${result.description}_\n\n`;
   });
   message &&
-    ctx.replyWithHTML(message, {
+    ctx.reply(message, {
+      parse_mode: "Markdown",
       reply_to_message_id: ctx.message.message_id,
       reply_markup: {
         inline_keyboard: [

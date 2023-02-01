@@ -23,8 +23,7 @@ export const googleImages = async (query) => {
 export const googleSearchResults = async (query, page = 0) => {
   const response = await googleSearch(query, page);
   let links = [];
-  response.knowledge_panel &&
-    response.knowledge_panel.title &&
+  response.knowledge_panel !== undefined && response.knowledge_panel.title !== null &&
     links.push({
       title: response.knowledge_panel.title,
       url: response.knowledge_panel.url,
