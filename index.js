@@ -64,13 +64,31 @@ bot.command("code", async (ctx) => {
 bot.command("s", async (ctx) => {
   const query = ctx.message.text.slice(3);
   const response = await bingSearch(query);
-  let message = `<b>Search results for <code>${query}</code></b>\n`;
+  let message = `<b>Search results for <code>${query}</code></b>\n\n`;
   response.forEach((result) => {
     message += `<a href="${result.url}">${result.title}</a>\n<i>${result.description}</i>\n\n`;
   });
   message &&
     ctx.replyWithHTML(message, {
       reply_to_message_id: ctx.message.message_id,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Bing",
+              url: `https://www.bing.com/search?q=${query}`,
+            },
+            {
+              text: "Google",
+              url: `https://www.google.com/search?q=${query}`,
+            },
+            {
+              text: "You",
+              url: `https://you.com/search?q=${query}`,
+            },
+          ],
+        ],
+      },
     });
 });
 
