@@ -123,6 +123,13 @@ bot.on("edited_message", async (ctx) => {
   }
 });
 
+bot.action("regenerate", async (ctx) => {
+  const message = ctx.update.callback_query.message;
+  const prompt = message.reply_to_message.text;
+  const response = await genText(prompt);
+  sendTextMessage(response, ctx, true);
+});
+
 bot.launch();
 
 // Enable graceful stop

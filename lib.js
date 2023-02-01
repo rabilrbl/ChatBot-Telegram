@@ -12,7 +12,17 @@ export const computeMessageId = async (ctx) => {
   } catch (e) {
     // If error is of undefined type, it means that the message is an edited message
     if (e.name === "TypeError") {
-      messageId = await ctx.update.edited_message.message_id;
+      try {
+        messageId = await ctx.update.edited_message.message_id; // Get the message id of the edited message
+      } catch (e) {
+        if (e.name === "TypeError") {
+          messageId = await ctx.update.callback_query.message.message_id; // Get the message id of the message from which the callback button clicked
+        } else {
+          throw e;
+        }
+      }
+    } else {
+      throw e;
     }
   }
   return messageId;
@@ -43,14 +53,30 @@ export const genImage = async (prompt) => {
   });
 };
 
-export const sendTextMessage = async (response, ctx) => {
+export const sendTextMessage = async (response, ctx, editMessage = false) => {
   let message = "";
   response.data.choices.forEach((choice) => {
     message += choice.text;
   });
-  ctx.reply(message, {
-    reply_to_message_id: await computeMessageId(ctx),
-  });
+  const reply_markup = {
+    inline_keyboard: [
+      [
+        {
+          text: "Regenerate",
+          callback_data: "regenerate",
+        },
+      ],
+    ],
+  };
+  !editMessage
+    ? ctx.reply(message, {
+        reply_to_message_id: await computeMessageId(ctx),
+        reply_markup,
+      })
+    : ctx.editMessageText(message, {
+        // Update the message with the new response
+        reply_markup,
+      });
 };
 
 export const sendMarkdownMessage = (response, ctx) => {
