@@ -5,6 +5,19 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+export const computeMessageId = async (ctx) => {
+  let messageId;
+  try {
+    messageId = await ctx.message.message_id;
+  } catch (e) {
+    // If error is of undefined type, it means that the message is an edited message
+    if (e.name === "TypeError") {
+      messageId = await ctx.update.edited_message.message_id;
+    }
+  }
+  return messageId;
+};
+
 export const genCode = async (prompt) => {
   return await openai.createCompletion({
     model: "code-davinci-002",
@@ -30,25 +43,14 @@ export const genImage = async (prompt) => {
   });
 };
 
-export const sendTextMessage = (response, ctx) => {
+export const sendTextMessage = async (response, ctx) => {
   let message = "";
   response.data.choices.forEach((choice) => {
     message += choice.text;
   });
-  try {
-    ctx.reply(message, {
-      reply_to_message_id: ctx.message.message_id,
-    });
-  } catch (e) {
-    // If error is of undefined type, it means that the message is an edited message
-    if (e.name === "TypeError") {
-      ctx.reply(message, {
-        reply_to_message_id: ctx.update.edited_message.message_id,
-      });
-    } else {
-      throw e;
-    }
-  }
+  ctx.reply(message, {
+    reply_to_message_id: await computeMessageId(ctx),
+  });
 };
 
 export const sendMarkdownMessage = (response, ctx) => {
@@ -62,7 +64,10 @@ export const sendMarkdownMessage = (response, ctx) => {
 };
 
 export const loadingWrapper = async (ctx, func) => {
-  const msg = await ctx.reply("Thinking...");
+  const loadingMessage = "Thinking...";
+  const loadingMessageId = await ctx.reply(loadingMessage, {
+    reply_to_message_id: await computeMessageId(ctx),
+  });
   await func();
-  ctx.deleteMessage(msg.message_id);
+  ctx.deleteMessage(loadingMessageId.message_id);
 };
