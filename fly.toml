@@ -16,4 +16,4 @@ kill_timeout = 5
     type = "connections"
 
 [deploy]
-  release_command = "pkill -9 node"
+  release_command = "pkill -f node || true"
