@@ -4,6 +4,7 @@ import {
   googleCurrency,
   googleDictionary,
   googleImages,
+  googleKP,
   googleSearchResults,
   googleTranslate,
 } from "./search.js";
@@ -181,6 +182,69 @@ bot.command("i", async (ctx) => {
         ],
       },
     });
+  });
+});
+
+bot.command("kp", async (ctx) => {
+  const query = ctx.message.text.slice(4);
+  const response = await googleKP(query);
+  let message = `Knowledge panel for <code>${query}</code>\n\n`;
+  message += `<u><b>${response.title}</b></u> - <i>${response.type}</i>\n\n`;
+  message += `<i><b>${response.description}</b></i>\n\n`;
+  response.metadata.forEach((metadata) => {
+    message += `<u><b>${metadata.title}</b></u>: ${metadata.value}\n\n`;
+  });
+  response.songs.length > 0 &&
+    (message += `\n<u><b>Songs:</b></u>\n\n`) &&
+    response.songs.forEach((song) => {
+      message += `<b>${song.title}</b> - <i>${song.album}</i>\n`;
+    });
+  response.books.length > 0 &&
+    (message += `\n<u><b>Books:</b></u>\n\n`) &&
+    response.books.forEach((book) => {
+      message += `<b>${book.title}</b> - <i>${book.year}</i>\n`;
+    });
+  response.ratings.length > 0 &&
+    (message += `\n<u><b>Ratings:</b></u>\n\n`) &&
+    response.ratings.forEach((rating) => {
+      message += `<b>${rating.name}</b>: <i>${rating.rating}</i>\n`;
+    });
+  response.tv_shows_and_movies.length > 0 &&
+    (message += `\n<u><b>TV Shows and Movies:</b></u>\n\n`) &&
+    response.tv_shows_and_movies.forEach((show) => {
+      message += `<b>${show.title}</b> - <i>${show.year}</i>\n`;
+    });
+  response.socials.length > 0 &&
+    (message += `\n<u><b>Socials:</b></u>\n`) &&
+    response.socials.forEach((social) => {
+      message += `<a href="${social.url}">${social.name}</a>\n`;
+    });
+  response.lyrics &&
+    response.lyrics.length > 0 &&
+    (message += `\n<u><b>Lyrics:</b></u>\n\n<i>${response.lyrics}</i>\n`);
+
+  response.available_on &&
+    response.available_on.length > 0 &&
+    (message += `\n${response.available_on}\n`);
+
+  response.demonstration && (message += `\n${response.demonstration}\n`);
+
+  const reply_markup = response.url
+    ? {
+        inline_keyboard: [
+          [
+            {
+              text: "Learn more",
+              url: response.url,
+            },
+          ],
+        ],
+      }
+    : {};
+
+  ctx.replyWithHTML(message, {
+    reply_to_message_id: ctx.message.message_id,
+    reply_markup,
   });
 });
 

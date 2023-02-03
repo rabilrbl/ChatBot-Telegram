@@ -60,6 +60,11 @@ export const googleCurrency = async (query) => {
   return response.unit_converter;
 }
 
+export const googleKP = async (query) => {
+  const response = await googleSearch(query);
+  return response.knowledge_panel;
+}
+
 export async function bingSearch(query, page = 1) {
   const response = await fetch(
     `https://www.bing.com/search?q=${query}&page=${page}&count=10`
