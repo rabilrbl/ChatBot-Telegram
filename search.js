@@ -24,7 +24,8 @@ export const googleImages = async (query) => {
 export const googleSearchResults = async (query, page = 0) => {
   const response = await googleSearch(query, page);
   let links = [];
-  response.knowledge_panel !== undefined && response.knowledge_panel.title !== null &&
+  response.knowledge_panel !== undefined &&
+    response.knowledge_panel.title !== null &&
     links.push({
       title: response.knowledge_panel.title,
       url: response.knowledge_panel.url,
@@ -58,12 +59,17 @@ export const googleWeather = async (place) => {
 export const googleCurrency = async (query) => {
   const response = await googleSearch(query);
   return response.unit_converter;
-}
+};
 
 export const googleKP = async (query) => {
   const response = await googleSearch(query);
   return response.knowledge_panel;
-}
+};
+
+export const googleImageReverseSearch = async (url) => {
+  const response = await google.search(my_awesome_image, { ris: true });
+  return response;
+};
 
 export async function bingSearch(query, page = 1) {
   const response = await fetch(
