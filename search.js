@@ -1,5 +1,6 @@
 import DOMParser from "dom-parser";
 import google from "googlethis";
+import fetch from "node-fetch";
 
 export const googleSearch = async (query, page = 0) => {
   const options = {
