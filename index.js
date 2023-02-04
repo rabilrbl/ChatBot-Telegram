@@ -40,6 +40,7 @@ bot.help((ctx) =>
 \`/d <word>\` - *Get the definition of a word.*
 \`/t <language> <sentence>\` - *Translate a sentence to a language.*
 \`/convert <amount> <input currency> to <output currency>\` - *Convert currency.*
+\`/kp <query>\` - *Get knowledge panel of a query.*
 
 *Examples:*
 /image cute cat in a box
@@ -49,6 +50,7 @@ bot.help((ctx) =>
 /d procastination
 /t spanish Hello world
 /convert 100 dollars to rupees
+/kp Stephen Hawking
 `,
     {
       parse_mode: "Markdown",
@@ -121,7 +123,7 @@ bot.command("s", async (ctx) => {
 bot.command("d", async (ctx) => {
   const query = ctx.message.text.slice(3);
   const response = await googleDictionary(query);
-  if (response.definitions.length > 0){
+  if (response.definitions.length > 0) {
     let message = `Word: <b>${response.word}</b> | <code>${response.phonetic}</code>\n\n`;
     message += `<u>Definitions:</u> \n\n`;
     response.definitions.forEach((definition) => {
@@ -278,13 +280,36 @@ bot.hears(/\/convert \d+ \w+ to \w+/i, async (ctx) => {
 
 // Process all messages and reply with openai response
 bot.on("message", async (ctx) => {
-  let prompt;
-  // If message is a reply, use the replied message as prompt along with the current message
-  ctx.message.reply_to_message
-    ? (prompt = ctx.message.reply_to_message.text + "\n" + ctx.message.text)
-    : (prompt = ctx.message.text);
-  const response = await genText(prompt);
-  sendTextMessage(response, ctx);
+  const message = ctx.message;
+  if (message.text) {
+    let prompt;
+    // If message is a reply, use the replied message as prompt along with the current message
+    ctx.message.reply_to_message
+      ? (prompt = ctx.message.reply_to_message.text + "\n" + ctx.message.text)
+      : (prompt = ctx.message.text);
+    const response = await genText(prompt);
+    sendTextMessage(response, ctx);
+  }
+  if (message.photo && message.photo.length > 0) {
+    // const photo = message.photo[message.photo.length - 1];
+    // const photo_id  = photo.file_id;
+    // let photo_url = (await bot.telegram.getFileLink(photo_id)).href;
+    ctx.reply("We don't support photos yet.");
+  }
+  if (message.voice) {
+    ctx.reply("Voice received. We don't support voice yet.");
+  }
+  if (message.document) {
+    ctx.reply("We don't support documents yet.");
+  }
+  if (message.audio) {
+    ctx.reply("We don't support audio yet.");
+  }
+  if (message.video) {
+    ctx.reply("We don't support videos yet.");
+  }
+}).catch((err) => {
+  console.log(`Error Occured: ${err}`);
 });
 
 bot.on("edited_message", async (ctx) => {

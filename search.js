@@ -66,9 +66,9 @@ export const googleKP = async (query) => {
   return response.knowledge_panel;
 };
 
-export const googleImageReverseSearch = async (url) => {
-  const response = await google.search(my_awesome_image, { ris: true });
-  return response;
+export const googleImageReverseSearch = async (image) => {
+  const response = await google.search(image, { ris: true });
+  return response.results;
 };
 
 export async function bingSearch(query, page = 1) {
