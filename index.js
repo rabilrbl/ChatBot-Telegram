@@ -136,7 +136,9 @@ bot.command("d", async (ctx) => {
       });
     }
     message &&
-      ctx.replyWithHTML(message, {
+      ctx.replyWithHTML(fmt(message, {
+        parse_mode: "HTML",
+      }), {
         reply_to_message_id: ctx.message.message_id,
       });
   } else {
