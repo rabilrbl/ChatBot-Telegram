@@ -1,4 +1,5 @@
 import { Configuration, OpenAIApi } from "openai";
+import { fmt } from "telegraf/format";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -68,15 +69,17 @@ export const sendTextMessage = async (response, ctx, editMessage = false) => {
       ],
     ],
   };
-  !editMessage
-    ? ctx.reply(message, {
-        reply_to_message_id: await computeMessageId(ctx),
-        reply_markup,
-      })
-    : ctx.editMessageText(message, {
-        // Update the message with the new response
-        reply_markup,
-      });
+  message
+    ? !editMessage
+      ? ctx.reply(fmt(message), {
+          reply_to_message_id: await computeMessageId(ctx),
+          reply_markup,
+        })
+      : ctx.editMessageText(fmt(message), {
+          // Update the message with the new response
+          reply_markup,
+        })
+    : ctx.reply("No response from the GPT");
 };
 
 export const sendMarkdownMessage = (response, ctx) => {
@@ -84,9 +87,14 @@ export const sendMarkdownMessage = (response, ctx) => {
   response.data.choices.forEach((choice) => {
     message += choice.text;
   });
-  ctx.replyWithMarkdown(message, {
-    reply_to_message_id: ctx.message.message_id,
-  });
+  message ? ctx.replyWithMarkdown(
+    fmt(message, {
+      parse_mode: "Markdown",
+    }),
+    {
+      reply_to_message_id: ctx.message.message_id,
+    }
+  ) : ctx.reply("No response from the GPT");
 };
 
 export const loadingWrapper = async (ctx, func) => {

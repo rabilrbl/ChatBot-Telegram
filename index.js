@@ -18,6 +18,7 @@ import {
   sendMarkdownMessage,
   loadingWrapper,
 } from "./lib.js";
+import { fmt } from "telegraf/format";
 
 const AUTHORIZED_USERS = process.env.AUTHORIZED_USERS.split(",");
 
@@ -89,35 +90,40 @@ bot.command("code", async (ctx) => {
 });
 
 bot.command("s", async (ctx) => {
-  const query = ctx.message.text.slice(3);
+  const query = encodeURI(ctx.message.text.slice(3));
   const response = await googleSearchResults(query);
-  let message = `Showing search results for \`${query}\`\n\n`;
+  let message = `Showing search results for \`${decodeURI(query)}\`\n\n`;
   response.forEach((result) => {
     message += `[${result.title}](${result.url})\n_${result.description}_\n\n`;
   });
   message &&
-    ctx.reply(message, {
-      parse_mode: "Markdown",
-      reply_to_message_id: ctx.message.message_id,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "Bing",
-              url: `https://www.bing.com/search?q=${query}`,
-            },
-            {
-              text: "Google",
-              url: `https://www.google.com/search?q=${query}`,
-            },
-            {
-              text: "You",
-              url: `https://you.com/search?q=${query}`,
-            },
+    ctx.reply(
+      fmt(message, {
+        parse_mode: "Markdown",
+      }),
+      {
+        parse_mode: "Markdown",
+        reply_to_message_id: ctx.message.message_id,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Bing",
+                url: `https://www.bing.com/search?q=${query}`,
+              },
+              {
+                text: "Google",
+                url: `https://www.google.com/search?q=${query}`,
+              },
+              {
+                text: "You",
+                url: `https://you.com/search?q=${query}`,
+              },
+            ],
           ],
-        ],
-      },
-    });
+        },
+      }
+    );
 });
 
 bot.command("d", async (ctx) => {
@@ -136,11 +142,14 @@ bot.command("d", async (ctx) => {
       });
     }
     message &&
-      ctx.replyWithHTML(fmt(message, {
-        parse_mode: "HTML",
-      }), {
-        reply_to_message_id: ctx.message.message_id,
-      });
+      ctx.replyWithHTML(
+        fmt(message, {
+          parse_mode: "HTML",
+        }),
+        {
+          reply_to_message_id: ctx.message.message_id,
+        }
+      );
   } else {
     ctx.reply("No definition found.");
   }
@@ -158,9 +167,14 @@ bot.command("t", async (ctx) => {
     let message = `Translated from <b>${response.source_language}</b> to <b>${response.target_language}</b>\n\n`;
     message += `<u>Actual:</u> ${response.source_text}\n\n<u>Translated:</u> <b><code>${response.target_text}</code></b>`;
     message &&
-      ctx.replyWithHTML(message, {
-        reply_to_message_id: ctx.message.message_id,
-      });
+      ctx.replyWithHTML(
+        fmt(message, {
+          parse_mode: "HTML",
+        }),
+        {
+          reply_to_message_id: ctx.message.message_id,
+        }
+      );
   } else {
     ctx.reply("Translation failed.");
   }
@@ -256,12 +270,17 @@ bot.command("kp", async (ctx) => {
         }
       : {};
 
-    ctx.replyWithHTML(message, {
-      reply_to_message_id: ctx.message.message_id,
-      reply_markup,
-    });
+    ctx.replyWithHTML(
+      fmt(message, {
+        parse_mode: "HTML",
+      }),
+      {
+        reply_to_message_id: ctx.message.message_id,
+        reply_markup,
+      }
+    );
   } else {
-    ctx.reply(`No results found for <code>${query}</code>`, {
+    ctx.replyWithHTML(`No results found for <code>${query}</code>`, {
       reply_to_message_id: ctx.message.message_id,
     });
   }
@@ -275,44 +294,51 @@ bot.hears(/\/convert \d+ \w+ to \w+/i, async (ctx) => {
   message += `<u>${response.input.name}</u>: ${response.input.value}\n\n`;
   message += `<u>${response.output.name}</u>: ${response.output.value}`;
   message &&
-    ctx.replyWithHTML(message, {
-      reply_to_message_id: ctx.message.message_id,
-    });
+    ctx.replyWithHTML(
+      fmt(message, {
+        parse_mode: "HTML",
+      }),
+      {
+        reply_to_message_id: ctx.message.message_id,
+      }
+    );
 });
 
 // Process all messages and reply with openai response
-bot.on("message", async (ctx) => {
-  const message = ctx.message;
-  if (message.text) {
-    let prompt;
-    // If message is a reply, use the replied message as prompt along with the current message
-    ctx.message.reply_to_message
-      ? (prompt = ctx.message.reply_to_message.text + "\n" + ctx.message.text)
-      : (prompt = ctx.message.text);
-    const response = await genText(prompt);
-    sendTextMessage(response, ctx);
-  }
-  if (message.photo && message.photo.length > 0) {
-    // const photo = message.photo[message.photo.length - 1];
-    // const photo_id  = photo.file_id;
-    // let photo_url = (await bot.telegram.getFileLink(photo_id)).href;
-    ctx.reply("We don't support photos yet.");
-  }
-  if (message.voice) {
-    ctx.reply("Voice received. We don't support voice yet.");
-  }
-  if (message.document) {
-    ctx.reply("We don't support documents yet.");
-  }
-  if (message.audio) {
-    ctx.reply("We don't support audio yet.");
-  }
-  if (message.video) {
-    ctx.reply("We don't support videos yet.");
-  }
-}).catch((err) => {
-  console.log(`Error Occured: ${err}`);
-});
+bot
+  .on("message", async (ctx) => {
+    const message = ctx.message;
+    if (message.text) {
+      let prompt;
+      // If message is a reply, use the replied message as prompt along with the current message
+      ctx.message.reply_to_message
+        ? (prompt = ctx.message.reply_to_message.text + "\n" + ctx.message.text)
+        : (prompt = ctx.message.text);
+      const response = await genText(prompt);
+      sendTextMessage(response, ctx);
+    }
+    if (message.photo && message.photo.length > 0) {
+      // const photo = message.photo[message.photo.length - 1];
+      // const photo_id  = photo.file_id;
+      // let photo_url = (await bot.telegram.getFileLink(photo_id)).href;
+      ctx.reply("We don't support photos yet.");
+    }
+    if (message.voice) {
+      ctx.reply("Voice received. We don't support voice yet.");
+    }
+    if (message.document) {
+      ctx.reply("We don't support documents yet.");
+    }
+    if (message.audio) {
+      ctx.reply("We don't support audio yet.");
+    }
+    if (message.video) {
+      ctx.reply("We don't support videos yet.");
+    }
+  })
+  .catch((err) => {
+    console.log(`Error Occured: ${err}`);
+  });
 
 bot.on("edited_message", async (ctx) => {
   const message = ctx.update.edited_message;
