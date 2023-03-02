@@ -1,10 +1,6 @@
-FROM debian:bullseye as builder
+FROM node:latest as builder
 
-RUN apt-get update; apt install -y curl
-RUN curl https://get.volta.sh | bash
-ENV VOLTA_HOME /root/.volta
-ENV PATH /root/.volta/bin:$PATH
-RUN volta install node
+RUN apt-get update; apt-get upgrade -y
 
 #######################################################################
 
@@ -19,16 +15,19 @@ ENV NODE_ENV production
 
 COPY . .
 
-RUN npm install
-FROM debian:bullseye
+
+FROM node:latest
 
 LABEL fly_launch_runtime="nodejs"
 
-COPY --from=builder /root/.volta /root/.volta
 COPY --from=builder /app /app
 
 WORKDIR /app
+
+RUN npm install -g yarn
+
+RUN yarn install
+
 ENV NODE_ENV production
-ENV PATH /root/.volta/bin:$PATH
 
 CMD [ "npm", "run", "start" ]
