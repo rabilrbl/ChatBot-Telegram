@@ -13,4 +13,4 @@ RUN yarn install
 
 ENV NODE_ENV production
 
-CMD [ "npm", "run", "start" ]
+CMD [ "yarn", "run", "start" ]
