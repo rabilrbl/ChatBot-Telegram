@@ -4,8 +4,9 @@ LABEL fly_launch_runtime="nodejs"
 
 SHELL ["/bin/bash", "-c"]
 
-# Switch timezone to Asia/Kolkata
-RUN timedatectl set-timezone Asia/Kolkata
+ARG TIMEZONE=Asia/Kolkata
+ENV TZ ${TIMEZONE}
+RUN timedatectl set-timezone ${TZ}
 
 RUN mkdir /app
 WORKDIR /app
