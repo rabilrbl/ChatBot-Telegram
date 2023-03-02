@@ -2,6 +2,11 @@ FROM node:latest
 
 LABEL fly_launch_runtime="nodejs"
 
+SHELL ["/bin/bash", "-c"]
+
+# Switch timezone to Asia/Kolkata
+RUN ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && echo Asia/Kolkata > /etc/timezone
+
 RUN mkdir /app
 WORKDIR /app
 
