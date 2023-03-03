@@ -4,9 +4,9 @@ LABEL fly_launch_runtime="nodejs"
 
 SHELL ["/bin/bash", "-c"]
 
-ARG TIMEZONE=Asia/Kolkata
-ENV TZ ${TIMEZONE}
-RUN timedatectl set-timezone ${TZ}
+ENV TZ=Asia/Kolkata
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y tzdata
 
 RUN mkdir /app
 WORKDIR /app
