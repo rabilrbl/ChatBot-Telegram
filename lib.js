@@ -41,7 +41,7 @@ export const genCode = async (prompt) => {
 export const genText = async (prompt) => {
   return await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
-    prompt: prompt,
+    messages: prompt,
   });
 };
 
