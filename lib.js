@@ -39,7 +39,7 @@ export const genCode = async (prompt) => {
 };
 
 export const genText = async (prompt) => {
-  return await openai.createCompletion({
+  return await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     prompt: prompt,
   });
@@ -85,14 +85,16 @@ export const sendMarkdownMessage = (response, ctx) => {
   response.data.choices.forEach((choice) => {
     message += choice.text;
   });
-  message ? ctx.replyWithMarkdown(
-    fmt(message, {
-      parse_mode: "Markdown",
-    }),
-    {
-      reply_to_message_id: ctx.message.message_id,
-    }
-  ) : ctx.reply("No response from the GPT");
+  message
+    ? ctx.replyWithMarkdown(
+        fmt(message, {
+          parse_mode: "Markdown",
+        }),
+        {
+          reply_to_message_id: ctx.message.message_id,
+        }
+      )
+    : ctx.reply("No response from the GPT");
 };
 
 export const loadingWrapper = async (ctx, func) => {
